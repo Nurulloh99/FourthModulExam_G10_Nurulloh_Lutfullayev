@@ -116,12 +116,12 @@ public class BotListenerService
                 {
                     new[]
                     {
-                        new KeyboardButton("Register of User"),
-                        new KeyboardButton("Get an instruction how to fill it")
+                        new KeyboardButton("Fill data"),
+                        new KeyboardButton("Get data")
                     },
                     new[]
                     {
-                        new KeyboardButton("Remove User info")
+                        new KeyboardButton("Delete data")
                     }
                 })
                 { ResizeKeyboard = true };
@@ -130,7 +130,7 @@ public class BotListenerService
 
             }
 
-            if (message.Text == "Remove User info")
+            if (message.Text == "Delete data")
             {
                 var userInformation = await botUserService.GetBotUserByTelegramUserIdAsync(user.Id);
                 if (userInformation.UserInfo is null)
@@ -149,9 +149,12 @@ public class BotListenerService
 
 
 
+            if (message.Text == null) return;
 
+            long userId = currentUserId;
+            string userMessage = message.Text;
 
-            if (message.Text == "Get an instruction how to fill it")
+            if (userMessage == "Fill data")
             {
                 await bot.SendTextMessageAsync(user.Id,
                     $"❗️Ro'yxat quidagi ko'rinishda bo'lishi kerak❗️\n" +
@@ -168,18 +171,9 @@ public class BotListenerService
                     $"\n Age:  25" +
                     $"\n Phone number:  +14242837985" +
                     $"\n Email:  nicknelsonfds@gmail.com" +
-                    $"\n Address:  Avenel.NJ, Alber Ave St, USA", cancellationToken: cancellationToken);
-
-            }
+                    $"\n Address:  Avenel.NJ, Alber Ave St, USA\n\n", cancellationToken: cancellationToken);
 
 
-            if (message.Text == null) return;
-
-            long userId = currentUserId;
-            string userMessage = message.Text;
-
-            if (userMessage == "Register of User")
-            {
                 currentUserId = update.Message.Chat.Id;
                 currentUserId2 = userObject.BotUserId;
                 currentStep = "askFirstName";
@@ -234,14 +228,16 @@ public class BotListenerService
             {
                 address = userMessage;
                 currentStep = "completed";
+                await bot.SendTextMessageAsync(userId, "Ma'lumotlaringiz muvaffaqqiyatli saqlandi!:");
 
-                await bot.SendTextMessageAsync(userId, $"Ro‘yxatdan muvaffaqqiyatli o‘tdingiz ${user.FirstName}!\n" +
-                    $"\nIsmingiz: {firstName}" +
-                    $"\nFamiliyangiz: {lastName}" +
-                    $"\nYoshingiz: {age}" +
-                    $"\nTelefon raqamingiz: {phone}" +
-                    $"\nEmailingiz: {email}" +
-                    $"\nYashash manzilingiz: {address}");
+                var menu = new ReplyKeyboardMarkup()
+                {
+                    ResizeKeyboard = true
+                };
+
+                menu.AddButtons(
+                        new KeyboardButton("Get data"));
+
 
                 var userInfo = new UserInfo();
                 userInfo.BotUserId = currentUserId2;
@@ -254,14 +250,18 @@ public class BotListenerService
 
                 await userInfoService.AddUserInfoAsync(userInfo);
 
-                currentUserId = 0;
-                currentStep = "";
-                firstName = "";
-                lastName = "";
-                age = "";
-                phone = "";
-                email = "";
-                address = "";
+            }
+
+            if (message.Text == "Get data")
+            {
+                await bot.SendTextMessageAsync(userId, $"Ro‘yxatdan muvaffaqqiyatli o‘tdingiz ${user.FirstName}!\n" +
+                    $"\nIsmingiz: {firstName}" +
+                    $"\nFamiliyangiz: {lastName}" +
+                    $"\nYoshingiz: {age}" +
+                    $"\nTelefon raqamingiz: {phone}" +
+                    $"\nEmailingiz: {email}" +
+                    $"\nYashash manzilingiz: {address}");
+
             }
 
         }
